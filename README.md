@@ -126,9 +126,9 @@ SSHOYU_KEY=~/.ssh/other_key sshoyu myapp 3000
 
 ---
 
-## Key management (server-side)
+## Server management
 
-The `sshoyu` command manages client access on the server:
+The `sshoyu` command on the server manages client keys and active tunnels:
 
 ```bash
 # Authorize a new client key
@@ -139,6 +139,12 @@ sudo sshoyu --list-keys
 
 # Revoke a client key
 sudo sshoyu --remove-key "ssh-ed25519 AAAA... user@host"
+
+# List active tunnels
+sudo sshoyu --list-tunnels
+
+# Close a specific tunnel
+sudo sshoyu --close-tunnel <subdomain>
 ```
 
 ---
