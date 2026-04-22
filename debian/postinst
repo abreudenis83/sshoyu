@@ -45,6 +45,9 @@ echo "✓ sshoyu_cli.sh instalado em ${CLI_SCRIPT}"
 install -m 0755 /usr/share/sshoyu/sshoyu-monitor.sh /usr/local/bin/sshoyu-monitor.sh
 echo "✓ sshoyu-monitor.sh instalado em /usr/local/bin/sshoyu-monitor.sh"
 
+install -m 0755 /usr/share/sshoyu/sshoyu-admin.sh /usr/local/bin/sshoyu
+echo "✓ sshoyu-admin instalado em /usr/local/bin/sshoyu"
+
 # --- 4. Criar usuário do sistema ---
 if ! id "$SSH_USER" &>/dev/null; then
     adduser --system --shell /bin/bash --home "/home/${SSH_USER}" --group "$SSH_USER"

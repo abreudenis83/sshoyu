@@ -31,7 +31,8 @@ chmod 644 "${PKG_DIR}/DEBIAN/control" \
           "${PKG_DIR}/DEBIAN/templates"
 chmod 755 "${PKG_DIR}/usr/share/sshoyu/sshoyu_cli.sh" \
           "${PKG_DIR}/usr/share/sshoyu/ssh_client.sh" \
-          "${PKG_DIR}/usr/share/sshoyu/sshoyu-monitor.sh"
+          "${PKG_DIR}/usr/share/sshoyu/sshoyu-monitor.sh" \
+          "${PKG_DIR}/usr/share/sshoyu/sshoyu-admin.sh"
 chmod 644 "${PKG_DIR}/lib/systemd/system/sshoyu-monitor.service"
 dpkg-deb --build "$PKG_DIR" "$OUTPUT"
 

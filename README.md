@@ -86,10 +86,10 @@ This will:
 
 ### Authorize the client on the server
 
-After running the installer, copy the printed public key and add it to the server:
+After running the installer, copy the printed public key and run on the server:
 
 ```bash
-sudo bash -c 'echo "command=\"/usr/local/bin/sshoyu_cli.sh\",no-X11-forwarding,no-agent-forwarding,no-pty <public-key>" >> /home/sshoyu/.ssh/authorized_keys'
+sudo sshoyu --add-key "ssh-ed25519 AAAA... user@host"
 ```
 
 ### Usage
@@ -122,6 +122,23 @@ Set `SSHOYU_KEY` to use a different key:
 
 ```bash
 SSHOYU_KEY=~/.ssh/other_key sshoyu myapp 3000
+```
+
+---
+
+## Key management (server-side)
+
+The `sshoyu` command manages client access on the server:
+
+```bash
+# Authorize a new client key
+sudo sshoyu --add-key "ssh-ed25519 AAAA... user@host"
+
+# List all authorized keys
+sudo sshoyu --list-keys
+
+# Revoke a client key
+sudo sshoyu --remove-key "ssh-ed25519 AAAA... user@host"
 ```
 
 ---
@@ -193,7 +210,8 @@ sshoyu/
 │   └── usr/share/sshoyu/
 │       ├── ssh_client.sh    # Client template (placeholders replaced at install time)
 │       ├── sshoyu_cli.sh    # Server forced command
-│       └── sshoyu-monitor.sh
+│       ├── sshoyu-monitor.sh
+│       └── sshoyu-admin.sh  # Installed as /usr/local/bin/sshoyu (key management)
 ├── debian/                  # Source for packaging scripts
 │   ├── control
 │   ├── templates            # debconf questions
