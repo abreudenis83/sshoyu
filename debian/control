@@ -1,0 +1,10 @@
+Package: sshoyu-server
+Version: 6.0.0
+Architecture: all
+Maintainer: Denis <claude-devops@zerum.com>
+Depends: bash, caddy, openssh-server, debconf (>= 0.5), adduser
+Description: SShoyu SSH tunnel server
+ Configures a server to accept reverse SSH tunnels and automatically manage
+ Caddy reverse proxy subdomains. Installs sshoyu_cli.sh as a forced SSH
+ command for a dedicated system user, and configures sudoers to allow safe
+ Caddyfile manipulation and service reloading.

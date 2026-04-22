@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+. /usr/share/debconf/confmodule
+
+systemctl daemon-reload 2>/dev/null || true
+
+if [ "$1" = "purge" ]; then
+    db_get sshoyu-server/ssh_user
+    SSH_USER="${RET:-sshoyu}"
+
+    rm -rf /etc/sshoyu
+    rm -f /etc/sudoers.d/sshoyu
+    rm -f /usr/local/bin/sshoyu_cli.sh
+    rm -f /usr/local/bin/sshoyu-monitor.sh
+
+    if id "$SSH_USER" &>/dev/null; then
+        deluser --remove-home "$SSH_USER" 2>/dev/null || true
+        echo "✓ Usuário '${SSH_USER}' removido"
+    fi
+
+    echo "✓ SShoyu Server removido completamente"
+fi
+
+db_stop

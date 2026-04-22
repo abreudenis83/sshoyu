@@ -1,0 +1,13 @@
+[Unit]
+Description=SShoyu tunnel monitor
+After=network.target caddy.service
+
+[Service]
+Type=simple
+User=sshoyu
+ExecStart=/usr/local/bin/sshoyu-monitor.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
