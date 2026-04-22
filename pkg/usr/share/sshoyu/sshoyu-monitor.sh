@@ -8,17 +8,16 @@ LOCK_FILE_DIR="${LOCK_FILE_DIR:-/tmp}"
 INTERVAL=15
 
 cleanup_tunnel() {
-    local subdomain=$1
-    local domain_base=$2
-    local lock_file=$3
+    local full_domain=$1
+    local lock_file=$2
     local temp_file="${LOCK_FILE_DIR}/Caddyfile.tmp"
 
-    sudo sed "/^${subdomain}\.${domain_base} {/,/^}/d" "$CADDYFILE_PATH" | sudo tee "$temp_file" > /dev/null
+    sudo sed "/^${full_domain} {/,/^}/d" "$CADDYFILE_PATH" | sudo tee "$temp_file" > /dev/null
     sudo mv "$temp_file" "$CADDYFILE_PATH"
     sudo systemctl reload caddy
     rm -f "$lock_file"
 
-    echo "$(date -Iseconds) Túnel encerrado: ${subdomain}.${domain_base}"
+    echo "$(date -Iseconds) Túnel encerrado: ${full_domain}"
 }
 
 kill_orphan_processes() {
@@ -27,7 +26,7 @@ kill_orphan_processes() {
     for lock_file in "${LOCK_FILE_DIR}"/sshoyu_tunnel_*.lock; do
         [ -f "$lock_file" ] || continue
         local pid
-        pid=$(cat "$lock_file" 2>/dev/null || true)
+        pid=$(sed -n '1p' "$lock_file" 2>/dev/null || true)
         [ -n "$pid" ] && lock_pids+=("$pid")
     done
 
@@ -49,10 +48,15 @@ while true; do
     # Limpa lock files cujos processos morreram
     for lock_file in "${LOCK_FILE_DIR}"/sshoyu_tunnel_*.lock; do
         [ -f "$lock_file" ] || continue
-        pid=$(cat "$lock_file" 2>/dev/null || true)
+        pid=$(sed -n '1p' "$lock_file" 2>/dev/null || true)
         if [ -z "$pid" ] || [ ! -d "/proc/$pid" ]; then
-            subdomain=$(basename "$lock_file" | sed 's/sshoyu_tunnel_//;s/\.lock//')
-            cleanup_tunnel "$subdomain" "$SSH_HOST" "$lock_file"
+            full_domain=$(sed -n '2p' "$lock_file" 2>/dev/null || true)
+            # fallback para lock files antigos (apenas PID, sem domínio)
+            if [ -z "$full_domain" ]; then
+                subdomain=$(basename "$lock_file" | sed 's/sshoyu_tunnel_//;s/\.lock//')
+                full_domain="${subdomain}.${SSH_HOST}"
+            fi
+            cleanup_tunnel "$full_domain" "$lock_file"
         fi
     done
 

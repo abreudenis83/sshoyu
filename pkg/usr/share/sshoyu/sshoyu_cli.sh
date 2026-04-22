@@ -112,7 +112,7 @@ else
     add_reverse_proxy_block "$subdomain" "$domain_base" "$remoteport"
     block_created=true
 
-    echo "$$" > "$lock_file"
+    printf "%s\n%s\n" "$$" "${subdomain}.${domain_base}" > "$lock_file"
 
     echo "✓ Reverse proxy block created successfully!"
     echo ""
