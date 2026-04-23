@@ -1,6 +1,6 @@
 # SShoyu
 
-![alt text](<ChatGPT Image Apr 22, 2026, 02_43_07 PM.png>)
+![alt text](<sshoyu-logo.png>)
 
 SShoyu (SSH local publisher) exposes local services to the internet via SSH reverse tunnels, automatically managing [Caddy](https://caddyserver.com/) reverse proxy subdomains on the server side.
 

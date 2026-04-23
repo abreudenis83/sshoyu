@@ -1,5 +1,5 @@
 Package: sshoyu-server
-Version: 6.0.0
+Version: 7.0.0
 Architecture: all
 Maintainer: Denis <claude-devops@zerum.com>
 Depends: bash, caddy, openssh-server, debconf (>= 0.5), adduser

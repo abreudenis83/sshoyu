@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SShoyu — SSH local publisher</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.7;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid #21262d;
+      margin-bottom: 2.5rem;
+    }
+
+    header img {
+      max-width: 340px;
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 { font-size: 2.4rem; font-weight: 700; color: #f0f6fc; letter-spacing: -0.5px; }
+    header p { color: #8b949e; font-size: 1.05rem; margin-top: 0.5rem; }
+
+    .flow {
+      display: inline-block;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.9rem;
+      color: #79c0ff;
+      margin-top: 1rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #f0f6fc;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 0.4rem;
+      margin: 2.5rem 0 1rem;
+    }
+
+    h3 { font-size: 1.1rem; font-weight: 600; color: #cdd9e5; margin: 1.8rem 0 0.6rem; }
+
+    p { margin-bottom: 0.8rem; color: #cdd9e5; }
+
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0.8rem; color: #cdd9e5; }
+    li { margin-bottom: 0.3rem; }
+
+    pre {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      margin: 0.8rem 0 1rem;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.875rem;
+      color: #e6edf3;
+    }
+
+    p code, li code, td code {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-size: 0.85em;
+      color: #79c0ff;
+    }
+
+    .comment { color: #8b949e; }
+
+    .install-box {
+      background: #161b22;
+      border: 1px solid #388bfd55;
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.2rem 0;
+    }
+
+    .install-box p { margin-bottom: 0.5rem; font-size: 0.95rem; color: #8b949e; }
+    .install-box pre { margin: 0; border-color: #30363d; }
+
+    table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1rem; font-size: 0.9rem; }
+    th { background: #161b22; color: #8b949e; font-weight: 600; text-align: left; padding: 0.5rem 0.8rem; border: 1px solid #30363d; }
+    td { padding: 0.5rem 0.8rem; border: 1px solid #21262d; color: #cdd9e5; }
+    tr:nth-child(even) td { background: #161b22; }
+
+    hr { border: none; border-top: 1px solid #21262d; margin: 2.5rem 0; }
+
+    .badge {
+      display: inline-block;
+      background: #1f6feb33;
+      color: #58a6ff;
+      border: 1px solid #1f6feb;
+      border-radius: 20px;
+      padding: 0.15rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      vertical-align: middle;
+      margin-left: 0.4rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <img src="ChatGPT Image Apr 22, 2026, 02_43_07 PM.png" alt="SShoyu logo">
+    <h1>SShoyu</h1>
+    <p>SSH local publisher — expose local services via reverse tunnels + Caddy</p>
+    <div class="flow">local service → sshoyu → SSH reverse tunnel → Caddy → public subdomain</div>
+  </header>
+
+  <h2>How it works</h2>
+  <ol>
+    <li>The client runs <code>sshoyu &lt;subdomain&gt; &lt;localport&gt;</code></li>
+    <li>The client queries the server for the next available tunnel port (3000+)</li>
+    <li>An SSH reverse tunnel is opened: <code>-R &lt;remoteport&gt;:&lt;local-ip&gt;:&lt;localport&gt;</code></li>
+    <li>The server registers a new reverse proxy block in the Caddyfile</li>
+    <li>Caddy is reloaded — the subdomain is immediately live</li>
+    <li>On disconnect (Ctrl+C or connection drop), the block is removed and Caddy reloaded</li>
+  </ol>
+
+  <hr>
+
+  <h2>Client setup <span class="badge">quick start</span></h2>
+
+  <div class="install-box">
+    <p>Run on any machine to install the <code>sshoyu</code> client:</p>
+    <pre><code>curl -fsSL http://abreudenis.com/install.sh | sh</code></pre>
+  </div>
+
+  <p>This will:</p>
+  <ul>
+    <li>Install <code>sshoyu</code> to <code>/usr/local/bin/sshoyu</code></li>
+    <li>Generate a dedicated SSH key at <code>~/.ssh/sshoyu_id_ed25519</code></li>
+    <li>Print the public key to send to the server administrator</li>
+  </ul>
+
+  <h3>Usage</h3>
+  <pre><code>sshoyu &lt;subdomain&gt; &lt;localport&gt;</code></pre>
+
+  <pre><code><span class="comment"># Expose a local web app on port 3000</span>
+sshoyu myapp 3000
+<span class="comment"># → https://myapp.abreudenis.com</span>
+
+<span class="comment"># Expose Portainer on port 9443</span>
+sshoyu portainer 9443
+<span class="comment"># → https://portainer.abreudenis.com</span>
+
+<span class="comment"># Expose a plain HTTP service on port 80</span>
+sshoyu site 80
+<span class="comment"># → https://site.abreudenis.com</span></code></pre>
+
+  <p>Press Ctrl+C to close the tunnel. The subdomain is removed from Caddy immediately.</p>
+
+  <h3>Custom SSH key</h3>
+  <pre><code>SSHOYU_KEY=~/.ssh/other_key sshoyu myapp 3000</code></pre>
+
+  <hr>
+
+  <h2>Server setup</h2>
+
+  <h3>Requirements</h3>
+  <ul>
+    <li>Debian/Ubuntu server</li>
+    <li><a href="https://caddyserver.com/docs/install">Caddy</a> installed and running</li>
+    <li>A wildcard DNS record pointing <code>*.abreudenis.com</code> to your server's IP</li>
+  </ul>
+
+  <h3>Install</h3>
+  <pre><code>wget https://github.com/abreudenis83/sshoyu/releases/latest/download/sshoyu-server_&lt;version&gt;_all.deb
+sudo dpkg -i sshoyu-server_&lt;version&gt;_all.deb</code></pre>
+
+  <p>During installation you will be asked for:</p>
+  <table>
+    <tr><th>Question</th><th>Description</th><th>Default</th></tr>
+    <tr><td>SSH hostname</td><td>Public hostname clients will connect to</td><td>—</td></tr>
+    <tr><td>SSH port</td><td>Port sshd listens on for sshoyu connections</td><td><code>2200</code></td></tr>
+    <tr><td>SSH user</td><td>System user created for tunnel connections</td><td><code>sshoyu</code></td></tr>
+  </table>
+
+  <h3>Reconfigure</h3>
+  <pre><code>sudo dpkg-reconfigure sshoyu-server</code></pre>
+
+  <h3>Remove</h3>
+  <pre><code><span class="comment"># Remove package (keeps config and user)</span>
+sudo dpkg -r sshoyu-server
+
+<span class="comment"># Remove everything including config and user</span>
+sudo dpkg --purge sshoyu-server</code></pre>
+
+  <hr>
+
+  <h2>Server management</h2>
+
+  <h3>Key management</h3>
+  <pre><code><span class="comment"># Authorize a new client key</span>
+sudo sshoyu --add-key "ssh-ed25519 AAAA... user@host"
+
+<span class="comment"># List all authorized keys</span>
+sudo sshoyu --list-keys
+
+<span class="comment"># Revoke a client key</span>
+sudo sshoyu --remove-key "ssh-ed25519 AAAA... user@host"</code></pre>
+
+  <h3>Tunnel management</h3>
+  <pre><code><span class="comment"># List active tunnels</span>
+sudo sshoyu --list-tunnels
+
+<span class="comment"># Close a specific tunnel</span>
+sudo sshoyu --close-tunnel &lt;subdomain&gt;</code></pre>
+
+  <hr>
+
+  <h2>Monitoring</h2>
+  <p>The package installs a systemd service (<code>sshoyu-monitor</code>) that runs every 15 seconds and removes stale Caddyfile blocks when tunnels die.</p>
+  <pre><code>systemctl status sshoyu-monitor
+journalctl -u sshoyu-monitor -f</code></pre>
+
+  <hr>
+
+  <h2>Configuration</h2>
+  <p><code>/etc/sshoyu/sshoyu.conf</code> (server-side):</p>
+  <pre><code>SSH_HOST=abreudenis.com
+SSH_PORT=2200
+SSH_USER=sshoyu
+CADDYFILE_PATH=/etc/caddy/Caddyfile
+MIN_REMOTE_PORT=3000
+LOCK_FILE_DIR=/tmp</code></pre>
+
+  <hr>
+
+  <p style="text-align:center; color:#484f58; font-size:0.85rem;">
+    <a href="https://github.com/abreudenis83/sshoyu">github.com/abreudenis83/sshoyu</a>
+  </p>
+
+</div>
+</body>
+</html>

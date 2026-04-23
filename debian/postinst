@@ -163,6 +163,11 @@ chmod 644 "$INSTALL_SCRIPT"
 echo "✓ install.sh gerado em ${INSTALL_SCRIPT}"
 echo "✓ sshoyu client script gerado em ${CLIENT_SCRIPT}"
 
+# Instala a página HTML de documentação
+sed "s|abreudenis\.com|${SSH_HOST}|g" /usr/share/sshoyu/index.html > "${CADDY_WWW}/index.html"
+chmod 644 "${CADDY_WWW}/index.html"
+echo "✓ index.html gerado em ${CADDY_WWW}/index.html"
+
 # --- 10. Resumo final ---
 echo ""
 echo "=============================================="

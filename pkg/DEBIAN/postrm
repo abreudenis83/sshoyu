@@ -13,6 +13,7 @@ if [ "$1" = "purge" ]; then
     rm -f /etc/sudoers.d/sshoyu
     rm -f /usr/local/bin/sshoyu_cli.sh
     rm -f /usr/local/bin/sshoyu-monitor.sh
+    rm -f /usr/local/bin/sshoyu
 
     if id "$SSH_USER" &>/dev/null; then
         deluser --remove-home "$SSH_USER" 2>/dev/null || true
