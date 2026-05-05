@@ -12,9 +12,14 @@ cleanup_tunnel() {
     local lock_file=$2
     local temp_file="${LOCK_FILE_DIR}/Caddyfile.tmp"
 
-    sudo sed "/^${full_domain} {/,/^}/d" "$CADDYFILE_PATH" | sudo tee "$temp_file" > /dev/null
-    sudo mv "$temp_file" "$CADDYFILE_PATH"
-    sudo systemctl reload caddy
+    (
+        flock 9
+        sudo sed "/^${full_domain} {/,/^}/d" "$CADDYFILE_PATH" | sudo tee "$temp_file" > /dev/null
+        sudo mv "$temp_file" "$CADDYFILE_PATH"
+        if ! sudo systemctl reload caddy; then
+            echo "$(date -Iseconds) Warning: caddy reload falhou após remover ${full_domain}" >&2
+        fi
+    ) 9>"${LOCK_FILE_DIR}/sshoyu.caddy.lock"
     rm -f "$lock_file"
 
     echo "$(date -Iseconds) Túnel encerrado: ${full_domain}"

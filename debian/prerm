@@ -10,7 +10,7 @@ LOCK_DIR="/tmp"
 
 for lock_file in "${LOCK_DIR}"/sshoyu_tunnel_*.lock; do
     [ -f "$lock_file" ] || continue
-    pid=$(cat "$lock_file" 2>/dev/null || true)
+    pid=$(head -n1 "$lock_file" 2>/dev/null || true)
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
         echo "Encerrando túnel ativo (PID ${pid})..."
         kill "$pid" 2>/dev/null || true

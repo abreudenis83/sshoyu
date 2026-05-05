@@ -15,6 +15,7 @@ fi
 OUTPUT="${REPO_ROOT}/sshoyu-server_${VERSION}_all.deb"
 
 # Sincroniza debian/ → pkg/DEBIAN/
+mkdir -p "${PKG_DIR}/DEBIAN"
 cp "${REPO_ROOT}/debian/control"   "${PKG_DIR}/DEBIAN/control"
 cp "${REPO_ROOT}/debian/templates" "${PKG_DIR}/DEBIAN/templates"
 cp "${REPO_ROOT}/debian/config"    "${PKG_DIR}/DEBIAN/config"

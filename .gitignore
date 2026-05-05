@@ -1,3 +1,6 @@
 *.deb
 .claude/
 CLAUDE.md
+
+# pkg/DEBIAN/* é gerado pelo build.sh a partir de debian/
+pkg/DEBIAN/*

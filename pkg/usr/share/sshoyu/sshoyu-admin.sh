@@ -29,7 +29,14 @@ require_root() {
 
 validate_key() {
     local key="$1"
-    if ! echo "$key" | grep -qE '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521) [A-Za-z0-9+/]+=* '; then
+    # Rejeita caracteres de controle (newline/CR/tab/etc) que poderiam
+    # injetar opções extras no authorized_keys.
+    if [[ "$key" =~ [[:cntrl:]] ]]; then
+        echo "Error: chave contém caracteres de controle" >&2
+        exit 1
+    fi
+    # Formato: <type> <base64>[ <comment>]. Comentário é opcional.
+    if ! printf '%s' "$key" | grep -qE '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521) [A-Za-z0-9+/]+=*( .+)?$'; then
         echo "Error: formato de chave pública inválido" >&2
         exit 1
     fi

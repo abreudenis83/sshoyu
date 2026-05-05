@@ -37,7 +37,7 @@ get_next_available_port() {
         return
     fi
 
-    local used_ports=$(echo "$caddyfile_content" | grep -oP '(?<=localhost:)\d+' | sort -n)
+    local used_ports=$(echo "$caddyfile_content" | grep -oP 'reverse_proxy\s+\S+:\K\d+' | sort -n)
 
     if [ -z "$used_ports" ]; then
         echo "3000"
@@ -74,5 +74,6 @@ ssh -p "$SSH_PORT" \
     -i "$SSH_KEY" \
     -R "$remoteport:$local_ip:$localport" \
     -o StrictHostKeyChecking=no \
+    -o ExitOnForwardFailure=yes \
     "$SSH_USER@$SSH_HOST" \
     "$subdomain" "$remoteport"
