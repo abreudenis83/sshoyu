@@ -1,9 +1,0 @@
-#!/bin/bash
-set -e
-
-. /usr/share/debconf/confmodule
-
-db_input high sshoyu-server/ssh_host || true
-db_input high sshoyu-server/ssh_port || true
-db_input high sshoyu-server/ssh_user || true
-db_go || true
