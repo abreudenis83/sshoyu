@@ -9,21 +9,42 @@ SSH_USER="__SSH_USER__"
 SSH_KEY="${SSHOYU_KEY:-$HOME/.ssh/sshoyu_id_ed25519}"
 
 if [ $# -ne 2 ]; then
-    echo "Usage: sshoyu <subdomain> <localport>"
+    echo "Usage: sshoyu <subdomain> <localport>[/<http|https>]"
     echo "Example: sshoyu files 8000"
+    echo "         sshoyu pictures 8080/https"
     exit 1
 fi
 
 subdomain=$1
-localport=$2
+port_arg=$2
+
+# Aceita port ou port/protocol
+case "$port_arg" in
+    */*)
+        localport="${port_arg%/*}"
+        protocol="${port_arg##*/}"
+        ;;
+    *)
+        localport="$port_arg"
+        protocol="http"
+        ;;
+esac
 
 if ! [[ "$localport" =~ ^[0-9]+$ ]] || [ "$localport" -lt 1 ] || [ "$localport" -gt 65535 ]; then
     echo "Error: Invalid local port. Must be a number between 1 and 65535"
     exit 1
 fi
 
+case "$protocol" in
+    http|https) ;;
+    *)
+        echo "Error: protocolo inválido (use http ou https)"
+        exit 1
+        ;;
+esac
+
 echo "[*] Subdomain: $subdomain"
-echo "[*] Local Port: $localport"
+echo "[*] Local Port: $localport ($protocol)"
 echo ""
 
 get_next_available_port() {
@@ -76,4 +97,4 @@ ssh -p "$SSH_PORT" \
     -o StrictHostKeyChecking=no \
     -o ExitOnForwardFailure=yes \
     "$SSH_USER@$SSH_HOST" \
-    "$subdomain" "$remoteport"
+    "$subdomain" "$remoteport" "$protocol"

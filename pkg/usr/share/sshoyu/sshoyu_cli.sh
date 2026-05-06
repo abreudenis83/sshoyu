@@ -10,7 +10,7 @@ CADDYFILE_PATH="${CADDYFILE_PATH:-/etc/caddy/Caddyfile}"
 LOCK_FILE_DIR="${LOCK_FILE_DIR:-/tmp}"
 
 SSH_PARAM="${SSH_ORIGINAL_COMMAND:-}"
-read -r ARG1 ARG2 _REST <<< "$SSH_PARAM"
+read -r ARG1 ARG2 ARG3 _REST <<< "$SSH_PARAM"
 
 if [ -z "$ARG1" ]; then
     echo "Error: Missing required parameters (subdomain and/or remoteport)"
@@ -28,6 +28,7 @@ fi
 
 SUBDOMAIN="$ARG1"
 LOCALPORT="$ARG2"
+PROTOCOL="${ARG3:-http}"
 
 # Valida subdomain (rótulo DNS RFC 1035: [a-z0-9] e hifens internos, 1-63 chars)
 if ! [[ "$SUBDOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then
@@ -40,6 +41,15 @@ if ! [[ "$LOCALPORT" =~ ^[1-9][0-9]{0,4}$ ]] || [ "$LOCALPORT" -gt 65535 ]; then
     echo "Error: porta remota inválida"
     exit 1
 fi
+
+# Valida protocolo do upstream (http padrão, https com tls_insecure_skip_verify)
+case "$PROTOCOL" in
+    http|https) ;;
+    *)
+        echo "Error: protocolo inválido (esperado http ou https)"
+        exit 1
+        ;;
+esac
 
 # Função para verificar se o subdomínio existe no Caddyfile
 check_subdomain_exists() {
@@ -59,11 +69,23 @@ add_reverse_proxy_block() {
     local subdomain=$1
     local domain_base=$2
     local remoteport=$3
+    local protocol=$4
     local backup="${LOCK_FILE_DIR}/sshoyu.bak.$$"
+    local block
 
-    local block="${subdomain}.${domain_base} {
+    if [ "$protocol" = "https" ]; then
+        block="${subdomain}.${domain_base} {
+    reverse_proxy https://127.0.0.1:${remoteport} {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}"
+    else
+        block="${subdomain}.${domain_base} {
     reverse_proxy 127.0.0.1:${remoteport}
 }"
+    fi
 
     cp "$CADDYFILE_PATH" "$backup"
     echo "" | sudo tee -a "$CADDYFILE_PATH" > /dev/null
@@ -130,6 +152,7 @@ trap cleanup SIGINT SIGTERM SIGHUP EXIT
 
 subdomain="${SUBDOMAIN:-}"
 remoteport="${LOCALPORT:-}"  # Nota: é na verdade a porta remota
+protocol="${PROTOCOL:-http}"
 block_created=false
 lock_file="${LOCK_FILE_DIR}/sshoyu_tunnel_${subdomain}.lock"
 
@@ -167,7 +190,7 @@ if check_port_in_use "$remoteport"; then
 fi
 
 echo "Status: Subdomain does not exist. Creating reverse proxy block..."
-if ! add_reverse_proxy_block "$subdomain" "$domain_base" "$remoteport"; then
+if ! add_reverse_proxy_block "$subdomain" "$domain_base" "$remoteport" "$protocol"; then
     release_caddy_lock
     exit 1
 fi
