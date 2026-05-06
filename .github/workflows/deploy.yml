@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versão (ex: 7.1.0). Se vazio, usa o valor atual de debian/control.'
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -16,10 +22,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract version from tag
+      - name: Resolve version
         id: version
         run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION=$(awk '/^Version:/ {print $2}' debian/control)
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "deb=sshoyu-server_${VERSION}_all.deb" >> "$GITHUB_OUTPUT"
 
