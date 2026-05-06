@@ -76,9 +76,11 @@ AUTH_KEYS="${SSH_DIR}/authorized_keys"
 FORCED_COMMAND="command=\"${CLI_SCRIPT}\",no-X11-forwarding,no-agent-forwarding,no-pty"
 PUB_KEY=$(cat "${KEY_FILE}.pub")
 
-# Evita duplicação: remove linha anterior do forced command se existir
+# Evita duplicação da chave do servidor sem apagar chaves de clientes.
+# Casa exatamente a chave pública do próprio servidor (não basta procurar
+# por "sshoyu_cli.sh" — esse trecho aparece em toda chave de cliente).
 if [ -f "$AUTH_KEYS" ]; then
-    grep -v "sshoyu_cli.sh" "$AUTH_KEYS" > "${AUTH_KEYS}.tmp" && mv "${AUTH_KEYS}.tmp" "$AUTH_KEYS" || true
+    grep -vF "$PUB_KEY" "$AUTH_KEYS" > "${AUTH_KEYS}.tmp" && mv "${AUTH_KEYS}.tmp" "$AUTH_KEYS" || true
 fi
 
 echo "${FORCED_COMMAND} ${PUB_KEY}" >> "$AUTH_KEYS"

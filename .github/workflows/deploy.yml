@@ -1,0 +1,59 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: abreudenis.com
+      SSH_PORT: 2200
+      SSH_USER: denis
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "deb=sshoyu-server_${VERSION}_all.deb" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version in debian/control
+        run: sed -i "s/^Version:.*/Version: ${{ steps.version.outputs.version }}/" debian/control
+
+      - name: Build .deb
+        run: ./scripts/build.sh
+
+      - name: Upload .deb as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.version.outputs.deb }}
+          path: ${{ steps.version.outputs.deb }}
+          if-no-files-found: error
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Copy .deb to server
+        run: scp -P "$SSH_PORT" "${{ steps.version.outputs.deb }}" "${SSH_USER}@${SSH_HOST}:/tmp/"
+
+      - name: Install on server
+        env:
+          DEB: ${{ steps.version.outputs.deb }}
+        run: |
+          ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
+            "sudo -n DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/${DEB} && rm -f /tmp/${DEB}"
