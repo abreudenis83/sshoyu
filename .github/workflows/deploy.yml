@@ -24,7 +24,8 @@ jobs:
           echo "deb=sshoyu-server_${VERSION}_all.deb" >> "$GITHUB_OUTPUT"
 
       - name: Bump version in debian/control
-        run: sed -i "s/^Version:.*/Version: ${{ steps.version.outputs.version }}/" debian/control
+        run: |
+          sed -i "s/^Version:.*/Version: ${{ steps.version.outputs.version }}/" debian/control
 
       - name: Build .deb
         run: ./scripts/build.sh
