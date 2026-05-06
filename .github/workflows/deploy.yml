@@ -69,4 +69,4 @@ jobs:
           DEB: ${{ steps.version.outputs.deb }}
         run: |
           ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
-            "sudo -n DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/${DEB} && rm -f /tmp/${DEB}"
+            "sudo -n dpkg -i /tmp/${DEB} && rm -f /tmp/${DEB}"
